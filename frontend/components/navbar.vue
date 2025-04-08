@@ -1,9 +1,14 @@
 <script setup lang="ts">
 import { watch, ref, inject } from 'vue';
 import type { NavigationMenuItem } from "@nuxt/ui";
-import type { Auth } from "firebase/auth";
+import { onAuthStateChanged, type Auth } from "firebase/auth";
 
 const auth = inject("auth") as Auth;
+const user = ref(auth.currentUser);
+
+onAuthStateChanged(auth, (newUser) => {
+  user.value = newUser;
+})
 
 const items = ref<NavigationMenuItem[][]>([
   [
@@ -43,46 +48,38 @@ const items = ref<NavigationMenuItem[][]>([
     },
   ],
 ]);
-
-const isAuthenticated = ref(!!auth.currentUser);
-
-// Watch for changes in the authentication state
-watch(
-  () => auth.currentUser,
-  (newUser) => {
-    console.log(newUser)
-    isAuthenticated.value = !!newUser;
-  }
-);
 </script>
 
 <template>
-  <div class="flex flex-row items-center w-full relative px-2">
-    <Logo class="absolute left-0"/>
-    <div class="flex-grow flex justify-center">
+  <div class="flex flex-row items-center w-full px-md-2">
+    
+    <Logo class="relative left-0"/>
+
+    <div class="flex-grow justify-center hidden md:flex">
       <UNavigationMenu
         :items="items"
         content-orientation="vertical"
       ></UNavigationMenu>
     </div>
     
-    <div class="absolute right-0">
-      <UButton v-if="!isAuthenticated" to="/login" icon="i-lucide-user" variant="soft"
-      color="neutral"
-      class="absolute right-0"
-    >
-      Login
-    </UButton>
-    <UPopover v-if="isAuthenticated" mode="hover">
-        <UButton icon="i-lucide-user" variant="soft" color="neutral" class="absolute right-0">
-          <span class="font-medium">Profile</span>
+    
+      <UButton v-if="!user" to="/login" icon="i-lucide-user" variant="soft" color="neutral" class="right-0 relative">
+        Login
+      </UButton>
+    <UPopover v-if="user" mode="hover" class="absolute">
+        <UButton icon="i-lucide-user" variant="soft" color="neutral" class="relative right-0">
+          <span v-if="user.displayName" class="font-medium">{{ user.displayName }}</span>
         </UButton>
       <template #content>
-        <UButton label="Logout" @click="auth.signOut()" />
+        <div class="p-2 rounded flex flex-col">
+          <p class="text-sm font-medium">Logged in as:</p>
+          <p class="text-lg font-bold">{{ user?.email }}</p>
+          <USeparator class="my-1"/>
+          <UButton label="Logout" @click="auth.signOut()" color="error" class="mt-1 ms-auto w-full" />
+        </div>
       </template>
-
     </UPopover>
 
-    </div>
+
   </div>
 </template>

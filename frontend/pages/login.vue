@@ -1,47 +1,75 @@
 <template>
-  <div class="login-container">
-    <h1>Login</h1>
-    <form @submit.prevent="handleSubmit">
-      <div class="form-group">
-        <label for="email">Email:</label>
-        <input type="email" id="email" v-model="email" required />
-      </div>
-      <div class="form-group">
-        <label for="password">Password:</label>
-        <input type="password" id="password" v-model="password" required />
-      </div>
-      <div v-if="error" class="error-message">{{ error }}</div>
-      <button type="submit">{{ isLogin ? 'Login' : 'Register' }}</button>
-      <button type="button" @click="toggleAuthMode">
-        {{ isLogin ? 'Switch to Register' : 'Switch to Login' }}
-      </button>
-      <button type="button" @click="signInWithGoogle">Sign in with Google</button>
-    </form>
-  </div>
+  <UContainer class="flex justify-center items-center my-5 flex-col">
+    <div class="gap-2 flex flex-col">
+      <UForm :schema="schema" :state="state" class="space-y-4 shadow rounded p-4">
+        <UFormField label="Email" name="email">
+          <UInput v-model="state.email" class="w-full" />
+        </UFormField>
+
+        <UFormField label="Password" name="password">
+          <UInput v-model="state.password" type="password" />
+        </UFormField>
+
+        <UButton @click="handleLogin" class="me-2">
+          Login
+        </UButton>
+
+        <UButton @click="handleSignup" color="secondary">
+          Signup
+        </UButton>
+      </UForm>
+      <USeparator> or </USeparator>
+      <UButton @click="signInWithGoogle" block>
+        Sign in with Google
+      </UButton>
+      <UButton @click="signInWithGitHub" block :disabled="true">
+        Sign in with GitHub
+      </UButton>
+      
+    </div>
+  </UContainer>
+  <Span>{{ error }}</Span>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, GithubAuthProvider } from "firebase/auth";
+import * as v from 'valibot'
+import type { FormSubmitEvent } from '@nuxt/ui'
 
-const email = ref('')
-const password = ref('')
+const schema = v.object({
+  email: v.pipe(v.string(), v.email('Invalid email')),
+  password: v.pipe(v.string(), v.minLength(8, 'Must be at least 8 characters'))
+})
+
+type Schema = v.InferOutput<typeof schema>
+
+const state = reactive({
+  email: '',
+  password: ''
+})
 const isLogin = ref(true)
 const error = ref('')
 
 const auth = getAuth();
 
-const handleSubmit = async () => {
+const handleSignup = async () => {
   try {
-    if (isLogin.value) {
-      await signInWithEmailAndPassword(auth, email.value, password.value);
-      alert("Login successful!");
-      navigateTo('/')
-    } else {
-      await createUserWithEmailAndPassword(auth, email.value, password.value);
+      await createUserWithEmailAndPassword(auth, state.email, state.password);
       alert("Registration successful!");
       navigateTo('/')
-    }
+    
+    error.value = '';
+  } catch (err) {
+    error.value = err as string;
+  }
+};
+
+const handleLogin = async () => {
+  try {
+      await signInWithEmailAndPassword(auth, state.email, state.password);
+      alert("Login successful!");
+      navigateTo('/')
     error.value = '';
   } catch (err) {
     error.value = err as string;
@@ -62,49 +90,14 @@ const signInWithGoogle = async () => {
     error.value = err as string;
   }
 };
+
+const signInWithGitHub = async () => {
+  try {
+    await signInWithPopup(auth, new GithubAuthProvider());
+    error.value = '';
+    navigateTo('/')
+  } catch (err) {
+    error.value = err as string;
+  }
+};
 </script>
-
-<style scoped>
-.login-container {
-  max-width: 400px;
-  margin: 0 auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-}
-
-input {
-  width: 100%;
-  padding: 8px;
-  box-sizing: border-box;
-}
-
-button {
-  margin-top: 10px;
-  padding: 10px 15px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-button[type="button"] {
-  background-color: #6c757d;
-}
-
-.error-message {
-  color: red;
-  margin-bottom: 10px;
-}
-</style>

@@ -1,6 +1,6 @@
 <template>
   <UContainer class="min-h-screen flex flex-col">
-    <header class="sticky top-0 grow-0 shrink-0 w-full">
+    <header class="sticky top-0 grow-0 shrink-0 w-full z-10">
       <Navbar />
     </header>
 
@@ -40,8 +40,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app)
-const aref = ref(auth)
 
-provide('auth', aref)
+provide('auth', auth)
 
 </script>

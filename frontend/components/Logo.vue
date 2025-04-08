@@ -1,8 +1,7 @@
 <template>
-    <NuxtLink class="flex items-center gap-2" to="/">
-        <img src="https://static.vecteezy.com/ti/gratis-vektor/p1/9108008-bier-logo-kostenlos-vektor.jpg" alt="" height="50" width="50">
-        <span class="font-bold relative right-9 top-1 text-outline-white">FB</span>
-    </NuxtLink>
+    <UButton to="/" as="button" variant="ghost">
+        Bierchen
+    </UButton>
 </template>
 
 <style scoped>
