@@ -19,6 +19,7 @@
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { ref, provide } from "vue";
+import axios from "axios";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -43,4 +44,10 @@ const auth = getAuth(app)
 
 provide('auth', auth)
 
+const instance = axios.create({
+  baseURL: 'http://localhost:3300/api',
+  headers: {'Authorization': `Bearer ${auth.currentUser?.getIdToken()}`}
+});
+
+provide('axios', instance)
 </script>

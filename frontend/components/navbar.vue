@@ -2,6 +2,7 @@
 import { watch, ref, inject } from 'vue';
 import type { NavigationMenuItem } from "@nuxt/ui";
 import { onAuthStateChanged, type Auth } from "firebase/auth";
+import type { Axios } from 'axios';
 
 const auth = inject("auth") as Auth;
 const user = ref(auth.currentUser);
